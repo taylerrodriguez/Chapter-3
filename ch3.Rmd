@@ -1,0 +1,746 @@
+# More on Two Factor Variables
+
+
+```{r message=FALSE}
+require(mosaic)
+require(tigerstats)
+```
+
+In Chapter Two we looked quickly at how to investigate the relationship between two categorical variables.  In the present Chapter we will explore this topic at greater length, pushing the ideas further.
+
+First, a look a Research Question from the **m111survey** data:  *What is the relationship at Georgetown College between sex and how one feels about one's weight?*
+
+This question. like most Research Questions, actually breaks down into two parts:
+
+* (**Descriptive Statistics**)  What is the relationship, *in the sample data*, between sex and how one feels about one's weight?
+* (**Inferential Statistics**)  Supposing we see a relationship in the data:  how much evidence does the data provide for a relationship *in the GC population at large* between sex and how one feels about one's weight?  Does the data provide lots of evidence for a relationship in the population, or could the relationship we see in the data be due just to chance variation in the sampling process that gave us the data?
+
+We'll handle the Descriptive Statistics first, then think about inference.
+
+We need to get a look at the data:
+
+```{r}
+data(m111survey)
+```
+
+
+From Chapter Two know that the right way to study a relationship between two categorical variables is to start with a two way table:
+
+```{r}
+SexWt <- xtabs(~sex+weight_feel,data=m111survey)
+SexWt
+```
+We put **sex** first because in this study it is natural to consider it to be the explanatory variable:  we think that one's sex might, through cultural conditioning, affect how one feels about one's weight.
+
+>**Practice**  Make a barchart from the **SexWt** table.  Think about how you will get hold of the necessary code:
+
+>* Pure memory?  (Possible with lots of practice, but maybe not right now!)
+>* Memory and Help?
+>* From searching an earlier Rmd document?
+>* From a search of your session History?
+
+
+
+
+Some Terminology and Basic Ideas
+----------
+
+
+
+* The twoway table is called "twoway" because it has two dimensions:  it has rows and columns.
+* There are two rows, because the first variable **sex** has two values.  There are three columns because the second variable **weight_feel** has three values.
+* Hence there are  *cells* in the table.
+*In each cell, there is an *observed count.*  For example, in the cell for males who feel underweight, the observed count is `r SexWt[2,1]`.
+* You can add up the observed counts in the rows to get *row totals*.  For example, the row total for the first row is
+
+$$`r SexWt[1,1]`+ `r SexWt[1,2]` + `r SexWt[1,3]` = `r sum(SexWt[1,])`,$$
+
+and this gives the total number of females in the study.   if you add up the observed counts in the second row, you get `r sum(SexWt[2,])`, the total number of males in the study.
+
+* The sum of the row totals is called the *grand total*.  It gives the total number of individuals in the study.
+* You can add up columns to get *column totals*, and if you add up column totals you will also get the grand total.
+
+
+Work through these practice questions.  Feel free to use your calculator, or to use R as a calculator.
+
+>**Pactice**   What is the grand total for this study?
+
+
+>**Pactice**	Of all students, what percentage were female and what percentage were male?  (You need to divide the row totals by grand totals to get the answers.)  The answers to this question give the distribution of **sex**.  This distribution is called a *marginal distribution*, because we often write totals in the margins of a twoWay table. 
+
+
+>**Pactice**	Of all female students, what percentage felt they were underweight?  What percentage thought they weighed about the right amount?  What percentage thought they were overweight?  To get the answers, divide observed counts along the first row by the row total for for the first row.  (The answers are called *row percentages*, and together they give the *conditional distribution* of the variable **weight_feel**,  given that sex is female.)
+
+
+You can get all of the row percentages with the **rowPerc** function:
+```{r}
+SexWtrp <- rowPerc(SexWt)
+SexWtrp
+```
+Now you've got both
+
+* the conditonal distribution of **weight_feel** given that **sex** is female (the first row), and
+* the conditonal distribution of **weight_feel** given that **sex** is male (the second row).
+
+>**Pactice**  Using the row percents table, say what percentage of the men in the study thought they were underweight.
+
+
+
+You can also get column percents (observed counts divided by column totals):
+
+```{r}
+colPerc(SexWt)
+```
+
+The column percents give you three conditional distributions:
+
+* the conditonal distribution of **sex** given that **Weight_feel** is "underweight" (the first column);
+* the conditonal distribution of **sex** given that **Weight_feel** is "about right" (the second column);
+* the conditonal distribution of **sex** given that **Weight_feel** is "overweight" (the third column).
+
+>**Pactice**  If we want to know the percentage of all men who feel that they are underweight, are we looking for a row percentage or a column percentage?  What is the percentage?
+
+
+>
+**Pactice**	If we want to know the percentage of men among all students who feel that they are overweight, are we looking for a row percentage or a column percentage?  What is the percentage?
+
+
+
+>**Pactice** 	Suppose we want the percentage of all people who are men and who feel that they are overweight:  is this a row percentage, a column percentage, or neither?
+
+Detecting and Describing Relationships Between Two Categorical Variables
+--------------------
+
+
+
+**Question**:  Suppose you know that in China, sex has nothing at all to do with how you feel about your weight, and that you learn that 30% of all Chinese men feel that they are underweight.  What percentage of all Chinese women feel that they are underweight?
+
+**Answer**:  30%.
+
+The given information, and the question, were both about row percentages from a Twoway table like the one we made earlier.  Also, both of the row percentages come from the same column (the "underweight" column).
+
+This leads to the following principles:
+
+**When two variables are unrelated in a sample or in a population, then for every column in a twoway table, the row percentages do not change as you go down the column.**
+
+
+A similar principle holds for column percentages:
+
+**When two variables are unrelated in a sample or in a population, then for every row in a twoway table, the column percentages do not change as you go across the row.**
+
+If there is at least one column where the row percentages are not all the same, then there is some relationship between the two variables.  Similarly, if there is at least one row where the column percentages are not all the same, then there is some relationship between the two variables.  **The bigger the differences, the stronger the relationship.**
+
+When the explanatory variable is along the rows, as in our SexWt table, we usually look just at row percentages.  So: **checking for a relationship means comparing row percentages down columns.**
+
+
+Let's try this on the SexWt table of row percents:
+
+```{r}
+SexWtrp
+```
+Looking down the first column, we see a big difference in the row percentages (2.5% vs. 25.81%).  We have just detected a strong relationship, *in the sample data*, between sex and how one feels about one's weight.
+
+How do we *describe* the relationship that we have detected?  Here is one way:
+
+"Sex and feeling about weight are related, in our sample data.  For example, the males were more likely than the females to think that they were underweight (25.81% as compared to 2.50% for the females)."
+
+The key is to communicate specifically the features of the data that allowed you to detect the relationship.  This helps convince your reader that you are right.  Be sure to use specific numbers from the table to back up your assertions.
+
+>**Practice**  The description above is not the only way to describe the relationship.
+
+>1. Compare row percents down the "overweight" column.
+>2. Write a description of the relationship between **sex** and **weight_feel** that is based on this comparison.
+
+>**Practice**  Consider the following made-up data.  Suppose that George plants 100 seeds in plot A, and 200 seeds in plot B.  One week later, he finds that 70 in plot A have sprouted, and that 140 in plot B have sprouted.  He makes a twoway table:
+
+```{r}
+PlotSprout <- rbind(c(70,30),c(140,60))
+rownames(PlotSprout) <- c("Plot.A","Plot.B")
+colnames(PlotSprout) <- c("sprouted","not.sprouted")
+PlotSprout
+```
+>George wants to see if there is a relationship, in the data, between type of plot and whether or not a seed sprouts in the first week.  He computes row percentages
+
+```{r}
+PlotSproutrp <- rowPerc(PlotSprout)
+PlotSproutrp
+```
+>George describes the relationship as follows:  "There is a strong relationship between type of plot and sprouting:  in both plots, a considerable majority of seeds sprouted within one week (70% sprouting vs. 30% not sprouting)."
+
+>1. What did George do wrong?
+>2. Write a correct description of the relationship, if any, between plot-type and sprouting.
+
+
+**Summary of Detection and Description**:
+
+* Compare row percents down columns.
+* The bigger the differences down a column, the stronger the relationship.
+* Description should incorporate at least two row percents from the same column.
+* But not too many percents!  The reader can always look back at the table for more info.
+
+Inferential Statistics
+-------------------
+
+So maybe we have examined a two-way table based on sample data, and have detected a relationship between the two categorical variables under study.  Great!  We've found a pattern in our data.  But:
+
+* does that pattern in our data exist in the population at large, or
+* could it be that there is no pattern in the population, and that the pattern in the data is the product solely of chance variation in the data-collection process?
+
+A quick-and-dirty way to ask the question:
+
+* Is the data-pattern *real*, or
+* just due to *chance*?
+
+The question is actually quite complex.  For our first time through, it's best to work with a small dataset.
+
+```{r}
+data(ledgejump)  #read Help on ledgejump
+```
+Our Research Question is:  Does the weather affect the way the crowd behaves?  In other words, is there a relationship between **weather** and **crowd.behavior**?
+
+First, we will detect and describe the relationship in the data:
+
+```{r}
+WeBe <- xtabs(~weather+crowd.behavior,data=ledgejump)
+WeBe
+WeBerp <- rowPerc(WeBe)
+WeBerp
+```
+In the data there appears to be a strong relationship between weather and crowd behavior:  when the weather was warm, the crowd was far more likely to bait the would-be jumper than when the weather was cool (66.67% baiting in warm weather vs. 22.22% baiting in cool weather).
+
+But is this data-pattern real, or just due to chance?  After all, there are many other factors besides weather that can influence a crowd's behavior.
+
+>**Practice**  Think of some.
+
+We model these other factors as "chance."
+
+If we could go back into time and watch the same 21 incidents, they would play out differently because of the other chance factors.  We would probably not get exactly the same twoway table.
+
+so a natural question arises:  if there is no relationship between weather and crowd behavior, what twoway table would we EXPECT to see?  In other words:  what cell counts would we expect to see?
+
+We can estimate these expected cell counts.  Here's the chain of reasoning that will produce our estimates:
+
+* There was a grand total of 21 incidents.
+* Of these 21 incidents, the crowd baited 10 times.  That's $10/21*100 = 47.6$%.
+* The crowd was polite 11 times, or $11/21*100 = 52.4$% of the time.
+* So if there is no relationship, our best guess is that the crowd baits 47.6% of the time and is polite 52.4% of the time.
+* So if we could run the study all over again and there is no relationship, then our best guess is that out of the 9 warm-weather incidents, the crowd would bait in 47.6% of them:  that's
+
+$$\frac{10}{21} \times 9 = 4.29$$
+times.  That's our estimate of the *expected cell count* for the warm-baiting cell of the twoway table.
+
+* Also, if we could run the study all over again and there is no relationship, then our best guess is that out of the 9 warm-weather incidents, the crowd would be polite in 52.4% of them:  that's
+
+$$\frac{11}{21} \times 9 = 4.71$$
+times.  That's our estimate of the *expected cell count* for the warm-polite cell of the twoway table.
+
+There is a pattern here.  To estimate an expected cell count if there is no relationship, compute
+
+$$\frac{colSum}{GrandTotal} \times rowSum$$
+
+for that cell.
+
+>**Practice** Find the expected cell count for the cool-baiting cell of the table.
+
+We might as well write an R-function to compute expected cell counts:
+```{r}
+exp.counts <- function(tab) {
+  expected <- rowSums(tab) %*% t(colSums(tab))/sum(tab)
+  rownames(expected) <- rownames(tab)
+  colnames(expected) <- colnames(tab)
+  return(expected)
+}
+expWeBe <- exp.counts(WeBe)
+round(expWeBe,2)
+```
+
+So that's the table you would expect to see, if there is no relationship between weather and crowd behavior.
+
+Well, not exactly, of course:
+
+* There is no such thing as 4.29 crowds!
+* Also, when chance is involved, you don't expect to see *exactly* what you expect!
+
+The idea is that someone who believes that there is no relationship between weather and crowd behavior would expect to see about 4.29 in the warm-baiting cell, *give or take a bit for chance error* in the data-collection process.
+
+There certainly are some differences between what one would expect, and what we actually saw:
+
+```{r}
+round(WeBe-expWeBe,2)
+```
+There are four cells in our table, so there are four differences.  We would like to find one number that provides an overall measure of the difference between the observed table and the expected one.
+
+One well-known measure is called the *chi-square statistic*.  To find it:
+
+* Square the differences between observed and expected counts
+* Divide each squared difference by the expected count
+* Add them all up
+
+Here it is, in a R-function
+```{r}
+chisq.stat <- function(tab) {
+  expected <- exp.counts(tab)
+  statistic <- sum((tab-expected)^2/expected)
+  return(statistic)
+}
+```
+
+Let's try it out on our table:
+```{r}
+chisq.stat(WeBe)
+```
+We get about 4.07.
+
+Facts about the chi-square statistic:
+
+* It is always at least 0.
+* The only time it is 0 is when you observe exactly what one would expect if there is no relationship
+* the bigger the statistic, the bigger the difference between observed and expected
+
+Now, back to our big question:  "Is the data-pattern real, or is it just due to chance?"
+
+We can rephrase the question as follows:  "We got a chi-square of 4.07.  How likely is to get 4.07 or more, just by chance?"
+
+Well, we find probabilities by repeating an experiment many times. Let's do it now!
+
+```{r eval=FALSE}
+require(manipulate)
+ChisqSimSlow(~weather+crowd.behavior,data=ledgejump, effects="fixed")
+```
+
+Of course, to get a really good idea of the probability of 4.07 or more, we should simulate the ledge-jump study many, many times.  we can do this with another app:
+
+```{r eval=FALSE}
+require(manipulate)
+ChisqResampler(WeBe,n=2500,effects="fixed")
+```
+
+**Note:**  ChisqResampler takes the twoway table, not formula-data input.  For a discussion of the *effects* argument, consult the GeekNotes.
+
+We find that if there is no relationship between **weather** and **crowd.behavior**, then there is a bit more than a 5% chance of getting a chi-square statistic of 4.07 or more, as we did in the actual study.
+
+This probability--the chance of getting a chi-square statistic at least as big as the one we actually got, if there is no relationship--is called a *P-value.*  The smaller the P-value, the more evidence the data provides *against* the idea that there is no relationship.  The smaller the P-value, the less reasonable it is for someone to claim that there is no relationship, that the results are due just to chance variation.
+
+How small should the P-value be, in order to rule out the claim of no relationship?  There is no one natural "cut-off", but as a convention that say that it is 0.05 (or 5%).
+
+This time, the P-value appears to be a bit more than 5%.  We are might be suspicious that weather and crowd behavior are related, but with the amount of data on hand we cannot quite rule out the idea that our results are due solely to chance variation.  (Maybe we should study more ledge-jumping incidents!)
+
+
+Tests of Significance
+--------------------------
+
+###  Five Steps
+
+The chain of reasoning we followed in the ledge-jump study is so common in inferential statistics that it has a name:  it is called  a *test of signifiance*, or a *test of hypothesis.*  It will be repeated so many times that we should learn to break it down into steps, and to assign special names to important components of the argument.
+
+
+#### **Step One**.  State Null and Alternative Hypotheses.
+
+The Null Hypothesis always involves the claim that there is no particular pattern in the population, or in the process that resulted in the data under study.  When we are investigating the relationship between two variables, it claims "no relationship."
+
+**Ho:**  There is no relationship between weather and crowd behavior.
+
+This is not a claim that there is no relationship in the sample data.  Rather , it is a claim that weather and crowd behavior are independent, and that the pattern we got in the data was just chance variation.
+
+The Alternative Hypothesis always contradicts the Null Hypothesis, in one way or another.  In this topic, the Alternative claims:
+
+**Ha:**  There is a relationship between weather and crowd behavior.
+
+Again, this is a claim that weather and crowd behavior are related in the sample data:  everyone agrees that there is a relationship in the sample.  Rather, the Alternative is claiming that the relationship in the sample is so strong that it exists because of real relationship between weather and crowd behavior, not because of chance variation in the 21 incidents under study.
+
+#### **Step Two**.  Compute a test statistic.
+
+The test statistic is a number that depends on the data.  The formula for the test statistic is usually chosen so that the bigger it is, the more the data differ from what the Null Hypothesis expects to see.  This time, the test statistic is the chi-square statistic, and its value is about 4.07.
+
+####  **Step Three**.  Compute the P-value.
+
+*BY definition*, the P-value is always:
+
+* *the probability of getting a test statistic at least as extreme as the one you got, if H0 were true.*
+
+We can approximate the P-value by simulating the study many times, under conditions where H0 is true.  Statisticians often have short-cut ways to calculate P-values, and you will learn about them as we go along.
+
+This time, the P-value was a little over 5%, we think.
+
+It is a very good idea to pause at this point and to construct a *practical intepretation* of the P-value that we have obtained.  This interpreation is basically a restatement of the definition of the term "P-value", *with the specific context of the problem inserted in place of the abstract terminology*.  Here is a fine practical interpretation of the P-value in this study:
+
+* **Interpretation of the P-value**:  If there is no relationship between weather and crowd behavior, then there is a bit more than a 5% chance of getting a test statistic at least as big as the 4.07 value that we got in the actual study.
+
+Notice that we used the numerical value of the P-value in our interpretation. This tells the audience just how likely or unlikely it is to get results of the sort we got, if the Null is true.
+
+####  **Step Four**.  Decide whether or not to reject H0.
+
+We always make this decision on the basis of our P-value, and on the "cut-off" value, which has been set at 0.05.
+
+* If P < 0.05, we reject J0, and we say that our results are *statistically significant*.
+* If P >= 0.05, we do not reject H0, and we do not say that our results are statistically significant.
+
+This time, we don't reject H0.  (But we are suspicious anyway that H0 might be wrong.)
+
+(Notice how important it is to be able to intepret your P-value.  It's the interpretation of the P-value that really makes the case for whether we shold rule out the the Null Hypothesis as unreasonable.)
+
+#### **Report a conclusion.**
+
+We always write a brief conclusion, stated in the context of the problem.  This means that we don't use a lot of technical terminology such as "P-value" or "chi-square statistic":  we just state our conclusion such a way that anyone who can understand the Research Question can understand our conclusion.
+
+In this example, we might conclude:
+
+"The data do not quite provide strong evidence for a relationship between weather and crowd behavior."
+
+As a rule, the conclusion should say how strong the evidence is against H0.  Equivalently, it could say how strong the evidence is for Ha (which is how we chose to state it just now).
+
+**Note**:  Interestingly, the tests of significance that perform in this book often cannot provide positive evidence *for* a Null hypothesis.  When you decide not to reject H0, you should avoid wording your conclusion as "the data provided so-and-so much evidence for" the Null.
+
+#### Another Example:  Sex and Seating Preference.
+
+**Research Question**:  In the student population at Georgetown College, is there a relationship between one's sex and where one prefers to sit in a classroom?
+
+To start our investigation, we perform descriptive statistics, so we can figure out if there is a relationship in the sample data.
+
+```{r}
+SexSeat <- xtabs(~sex+seat,data=m111survey)
+SexSeat
+SexSeatrp <- rowPerc(SexSeat)
+SexSeatrp
+```
+>**Practice**:  Describe the relationship between sex and seat, in the sample data.
+
+
+Now we go for the inferential statistics:  we will perform a test of significance.
+
+**Step One**:  The hypotheses are:
+
+H0:  There is no relationship, in the GC population, between sex and seating preference.
+Ha:  There is a relationship, in the population, between sex and seating preference.
+
+**Step Two**:  Compute the test statistic.
+
+```{r}
+test.stat <- chisq.stat(SexSeat)
+test.stat
+```
+
+The chi-square statistic is about `r round(test.stat,2)`.
+
+**Step Three**  Compute the P-value.
+
+For this, use the app:
+```{r eval=FALSE}
+ChisqResampler(SexSeat,n=2500,effects="random")
+```
+
+**Note**:  when your data a random sample from some larger population, we recommend that you set the *effects* argument to "random."
+
+Your approximation of the P-value was probably a little more than 16%.
+
+**Step Four**  Make a decision about H0.
+
+Since P = 0.16 > 0.05, we do not reject H0.
+
+**Step Five**:  Write a conclusion.
+
+The sample data did not provide strong evidence for a relationship between sex and seating preference in the Georgetown College population.
+
+#### More Cool Facts About the Chi-square Statistic
+
+The *degrees of freedom* for a twoway table (*df* for short) is an important quantity in statistical theory.  It is defined as:
+
+$$df = {(NumbRows -1)} \times {(NumbCols -1)}.$$
+
+For the Sex and seat table, the $df$ is $(2-1) \times (3-1) = 2$.
+
+Statistical theory says that, if H0 is true and we have taken a fairly large sample, then in repeated re-sampling the chi-square statistic should be, on average, equal to the $df$.  Also, the standard deviation of the resampled chi-square statistics should be about $\sqrt{2 \times df}$.
+
+In this case, the SD should be about $\sqrt{4}=2$.
+
+Looking back at the ChisqResampler results, you should see that the mean and the SD of the resampled statistics was pretty close to what statistical theory suggests.  You can use the mean and the SD as an advance guide to whether or not H0 looks reasonable.  If the test statistic is many SDs above the df, then things look pretty bad for the Null.
+
+#### A Pre-packaged Test
+
+As we said just a while ago, statisticians can often derive short-cut ways to compute P-values, and these methods are written up into R-functions.  May we suggest the use of the function **xchisq.test**?
+
+```{r}
+xchisq.test(SexSeat)
+```
+You get the test statistic and the P-value that you need to write up a test of significance.  You more information, too, such as a table of observed counts and a table of expected counts.  (Consult GeekNotes for a discussion of"residuals".)
+
+If you don't want the extra information (after all, we already have the twoway table), then we can use a standard R-function:
+
+```{r}
+chisq.test(SexSeat)
+```
+You should still write out all five steps of a test, even when you use a pre-made R-function.  Here is how would write up the test using such a function.
+
+**Step One**:  The hypotheses are:
+
+H0:  There is no relationship, in the GC population, between sex and seating preference.
+Ha:  There is a relationship, in the population, between sex and seating preference.
+
+**Step Two**:  Compute the test statistic.
+
+```{r}
+results <- chisq.test(SexSeat)
+```
+
+The chi-square statistic is about `r round(results$statistic,2)`.
+
+**Step Three**  Report the P-value.
+
+The P-value is `r round(results$p.value,3)`.
+
+
+**Step Four**  Make a decision about H0.
+
+Since P = `r round(results$p.value,2)` > 0.05, we do not reject H0.
+
+**Step Five**:  Write a conclusion.
+
+The sample data did not provide strong evidence for a relationship between sex and seating preference in the Georgetown College population.
+
+
+**An Example Starting with Summary Data**
+
+Sometimes you don't have the raw data available, but you still want to study the relationship between two categorical variables.  The descriptive and inferential procedures are the same as always, but you have to make your own table first,
+
+**Example**:  Suppose that in the ledge-jump study we had 42 incidents. In 18 of them the weather was cool and in the remaining 24 the weather was warm.  In 4 of the 18 cool-weather incidents, the crowd was baiting.  In 16 of the 24 warm-weather incidents, the crowd was baiting.  We want to know whether weather and crowd behavior are related.
+
+First, construct your twoway table:
+```{r}
+WeBe2 <- rbind(c(4,14),c(16,8))
+rownames(WeBe2) <- c("cool","warm")
+colnames(WeBe2)  <- c("baiting","polite")
+WeBe2
+```
+
+To check for a relationship in the data, compute row percents:
+```{r}
+WeBe2rp <- rowPerc(WeBe2)
+WeBe2rp
+```
+
+Yep, same strong relationship as before (in this fake example, we just doubled all of the counts, so the percentages stay the same).
+
+Now the inferential statistics:
+
+**Step One**:  The hypotheses are:
+
+H0:  There is no relationship between weather and crowd behavior.
+Ha:  There is a relationship, between weather and crowd behavior.
+
+**Step Two**:  Compute the test statistic.
+
+```{r}
+results <- chisq.test(WeBe2)
+```
+
+The chi-square statistic is about `r round(results$statistic,2)`.
+
+**Step Three**  Report the P-value.
+
+The P-value is `r round(results$p.value,3)`.
+
+
+**Step Four**  Make a decision about H0.
+
+Since P = `r round(results$p.value,2)` > 0.05, we do reject H0.
+
+**Step Five**:  Write a conclusion.
+
+The sample data provided strong evidence for a relationship between weather and crowd behavior.
+
+
+**Note**:  The pattern in this imaginary study was exactly as strong as the pattern in the actual ledge-jump study, but it was based on twice as much data.  Notice the effect on the P-value:  it went down a lot!  In general, the more data you have, the more *powerful* your test will of significance will be, in the sense that it is more likely to reject H0 when H0 is false.
+
+**When Should I simulate to find the P-value?**
+
+Pre-made R-functions for tests are very convenient, but you have to be careful not to misuse them.  When it comes to the **chisq.test**, statisticians say that you should only trust the P-value when the expected cell counts are all at least 5.  (Some say that at least 80% of the expected cell counts should be at least 5, and that all of them should be at least 1.)
+
+Consider what happens with the ledgejump data:
+```{r}
+WeBe <- xtabs(~weather+crowd.behavior,data=ledgejump)
+xchisq.test(WeBe)
+```
+
+The warning at the end was issued because a couple of the expected cell counts (the ones in the first row) were less than 5.
+
+When you get a warning, it is best to back up and try simulation.  You don't necessarily have to use **ChisqResampler**:  R provides its own simulation routine, via the *simulate.p.value* argument.  Another argument *B* specifies the number of resamples to take.
+
+```{r}
+xchisq.test(WeBe,simulate.p.value=TRUE,B=2500)
+```
+
+We recommend that you perform such "safety checks" during Step Two of any test of significance.  **xchisq.test** comes in handy, here, because it shows the expected cell counts.
+
+**Note:** The simulated P-value you got with **xchisq.test** was probably a bit higher than the one you got with **ChisqResampler**.  That's because the two functions take slightly different approaches to resampling.  Interested persons should consult the GeekNotes for details.
+
+Simpson's Paradox
+---------------------
+
+**Warning**:  What you are about to see appears to be impossible.  But it really does happen.
+
+Read about the **deathpen** study:
+```{r}
+data(deathpen)
+```
+
+We are interested in the following Research Question:  "Who is more likely to get the death penalty in capital cases:  a black defendant or a white defendant?"
+
+First, some descriptive statistics to detect and describe relationships:
+
+```{r}
+DefD <- xtabs(~defrace+death,data=deathpen)
+DefD
+DefDrp <- rowPerc(DefD)
+DefDrp
+```
+
+>**Practice**:  Describe the relationship, in the data, between race of defendant and whether or not defendant receives the death penalty.  Does it fit with your prior assumptions about how mostly-white judges would think in Florida several decades ago?
+
+There is a third variable present in the study: **vicrace**, the race of the murdered victim. Let's break the data down into two groups, based on the two values of **vicrace**:
+
+```{r}
+deathpenWV <- subset(deathpen,vicrace=="white")
+deathpenBV <- subset(deathpen,vicrace=="black")
+```
+
+Now let's study the relationship between **defrace** and **death** when the victim was white:
+
+```{r}
+DefDWV <- xtabs(~defrace+death,data=deathpenWV)
+DefDWV
+DefDWVrp <- rowPerc(DefDWV)
+DefDWVrp
+```
+
+
+>**Practice**:  Describe the relationship, in the data, between race of defendant and whether or not defendant receives the death penalty, when the victim is white.
+
+
+Now let's study the relationship between **defrace** and **death** when the victim was black:
+
+```{r}
+DefDBV <- xtabs(~defrace+death,data=deathpenBV)
+DefDBV
+DefDBVrp <- rowPerc(DefDBV)
+DefDBVrp
+```
+
+
+>**Practice**:  Describe the relationship, in the data, between race of defendant and whether or not defendant receives the death penalty, when the victim is black.
+
+
+If your analysis is correct, then you should be very puzzled by now. This is an example of *Simpson's Paradox.*
+
+Simpson's Paradox occurs when the direction of the relationship between two variables is one way when you look at the aggregate data, but turns out the opposite way when you break up the data into subgroups based on a third variable.
+
+This time, whites were more likely than blacks to get death in the aggregate data, but were less likely than blacks to get death in both of the subgroups.
+
+Simpson's Paradox is mathematically possible:  we just now saw an example.  But it still seems unreal.  Can we figure out WHY it has occurred, in this example?
+
+In this example, our explanatory variable X is **defrace**, and the response variable Y is **death**.  The third, lurking variable Z is **vicrace**.  The key to understanding how Simpson's paradox occurs is as follows:
+
+* study the relationship between X and Z;
+* study the relationship between Z and Y.
+* Synthesize the results of these two studies.
+
+As for the relationship between **defrace** and **vicrace**, we have:
+
+```{r}
+DefVic <- xtabs(~defrace+vicrace,data=deathpen)
+DefVic
+DefVicrp <- rowPerc(DefVic)
+DefVicrp
+```
+
+Hmm, black folks are much more likely to kill black folks than white folks are.
+
+As for the relationship between **vicrace** and **death**, we have:
+
+```{r}
+VicD <- xtabs(~vicrace+death,data=deathpen)
+VicD
+VicDrp <- rowPerc(VicD)
+VicDrp
+```
+
+Interesting:  hen the victim is white, the defendant is about three times more likely to get the death penalty than when the victim is black (14.02% vs. 5.36%).
+
+Synthesize the results and the mystery is solved:  White defendants are indeed less likely to get the death penalty than black defendants are, both when the victim is white and when the victim is black, but the white defendants hamstring themselves by mostly killing white people.  Killing a white person seems to have been a sure-fire way to incur the wrath of the Florida legal system, back in the day.
+
+Thoughts on R
+--------------
+
+### Some important R functions from this Chapter:
+
+* **xtabs**:  formula-data approach:  xtabs(~exp+resp, data=Mydata)
+* **rowPerc**
+* **colPerc**  (less commonly used, especially if you plan to write the explanatory variable along rows)
+* **xchisq.test**  (more output, including expected cell counts)
+* **chisq.test**  (brief output)
+* **rbind**, **rownames** and **colnames** to build your own twoway table 
+
+GeekNotes
+-------------------
+
+### Cleveland Dotplots
+
+Barcharts are very popular for investigating categorical variables, but modern statisticians believe that the *Cleveland dot plot* is more useful in most situations.  
+
+```{r fig.width=4,fig.height=4}
+SexWtrp <-100*prop.table(xtabs(~weight_feel+sex,data=m111survey),margin=1)
+dotplot(SexWtrp,groups=FALSE,horizontal=FALSE,type=c("p","h"),
+        ylab="Percent",xlab="Feeling About Weight",
+        main="Feeling About Weight, by Sex")
+```
+The first line of code above constructs a twoway table and computes row percentages for it, using the **prop.table** function to prevent having to deal with the extraneous column of total percentages.  (See the Chapter 2 GeekNotes for **prop.table**.)  Note that in the twoway table the explanatory variable comes second.  Reverse the order to see the effect on the layout of the plot.
+
+The second line constructs the dot plot itself.  (Notice that the function is **dotplot** with a lower-case "p", as opposed to the histogram-like **dotPlot** that we sometimes use for numerical variables.)  Whereas barcharts indicate percentages by the tops of rectangles, the Cleveland dot plot uses points.  Setting the *type* argument to *c("p","h")* indicates that we want points, but also lines extending to the points.  The lines are helpful, as the human eye is good at comparing relative lengths of side-by-side segments.  The *groups* argument is FALSE by default; we include it here to emphasize how the plot will change when it is set to TRUE, as in the next example.
+
+```{r}
+dotplot(SexWtrp,groups=TRUE,horizontal=FALSE,type=c("p","o"),
+        ylab="Proportion",xlab="Feeling About Weight",
+        auto.key=list(space="right",title="Sex",lines=TRUE),
+        main="Feeling About Weight, by Sex")
+```
+Setting *groups* to TRUE puts both sexes in the same panel.  Setting *type=c("p","o")* produces the points, with points in the same group connected by line segments.  The *lines* argument in *auto.key* calls for lines as well as points to appear in the legend.
+
+
+### The *Effects* Argument in ChiSqResampler
+
+When we used the ChisqSimSlow and ChisqResampler apps during the ledgejump study, we set the *effects* argument to "fixed."  Later on, in the **sex**   and **seat** study, we set *effects* to "random".  What was all that about?
+
+Try the ChisqSimSlow app in the ledgejump study again, and this time pay careful attention to each twoway table as it appears.
+
+```{r eval=FALSE}
+require(manipulate)
+ChisqSimSlow(~weather+crowd.behavior,data=ledgejump, effects="fixed")
+```
+
+Now try it again, but this time with *effects* set to "random":
+
+```{r eval=F}
+require(manipulate)
+ChisqSimSlow(~weather+crowd.behavior,data=ledgejump, effects="random")
+```
+
+You might notice that when effects are fixed, the number of cool-weather days is always 9, and the number of warm-weather days is always 12, just as in the original data.  On the other hand, when effects are random, although the total number of incidents stays constant at 21, the division of them into cool and warm days varies from one resample to another.
+
+In the ledgejump study, the 21 incidents could not reasonably be regarded as a random sample from some larger "population" of incidents.  Most likely, the researcher included in his study all of the incidents for which he could determine the relevant information about weather and crowd behavior.  This isn't a *random* sample from among all incidents.  Therefore, there is no randomness involved in how many warm-weather and how many cool-weather incidents were involved:  if we could go back in time and watch these incidents play out again, 9 of them would still have been in warm weather, and 12 would have been in cool weather.
+
+But chance *is* still involved:  in the determination of the value of the response variable.  In each incident, factors not associated with the random variable are at play.  Such factors -- the personalities of the people in the crowd, the length of time the would-be jumper stood on the ledge, etc. -- are modeled as "chance" and these chance factors help determine whether the crowd is baiting or polite.  Recall that if weather and crowd behavior were unrelated, then our best guess was that for each incident there was a 52.4% chance that the crowd would be polite and a 47.6% chance that it would be baiting.  In the resampling with fixed effects, there are 9 cool-weather incidents and 12 warm-weather ones, and each incident is given a 52.4% chance to have a polite crowd.
+
+On the other hand, if our twoway table is based on a random sample from a larger population, as the **sex** and **seat** study was, then we say that the effects are *random*.  In the original sex-seat sample, there were 71 individuals:  40 females and 31 males.  If we were to repeat the sample again, we would not be guaranteed to have 40 females and 31 males in it.  Our best guess, though, based on our sample, is that $\frac{40}{71} \times 100 = 56.3$% of the population is female, so in the resampling with random effects, we give each individual a 56.3% chance to be female.  Since the resampling is done under the hypothesis that sex and seat are related, the chances for each resample-individual to prefer front, back and middle are the same, regardless of whether the individual is female or male.
+
+Just as the two methods of resampling differ mathematically, so they also differ in the nature and scope of our conclusion in Step Five.  In the ledgejump study, fixed effects resampling models the assumption that the 21 incidents themselves would have been the same from sample to sample:  the only thing that varies with chance is how the crowd behaves in each incident.  Hence your conclusion in Step Five -- that the sample data don't quite provide strong evidence for a relationship between weather and crowd behavior -- applies only to those 21 incidents.  In the **sex** and **seat** study, on the other hand, the random-effects resampling method models the assumption that the the 71 GC students were a random sample from the larger population of all GC students.  The conclusions we draw from this data apply to this larger population.
+
+
+When we set *simulate.p.value* to TRUE in **chisq.test** or in **xchisq.test**, R also does resampling.  However, it takes a third approach:  the the row sums (tallies of the various values of the X variable) are fixed, as in our fixed effects, but the column sums are also fixed to be the same as the column sums of the original data.  In our terminology, you could say the resampling is "double-fixed."  R has its own reasons for the double-fixed approach that we will not cover here.
+
+Be assured that, as sample size increases, all three methods:  fixed, random and double-fixed, yield approximations that agree more and more nearly with each other.  At small sample sizes, though, they can differ by a few percentage points.  (Try the ChisqResampler app on the ledgejump data with fixed effects and with random effects, and compare the P-values you get with what **chisq.test** gives when *simulate.p.value* is set to TRUE.)
+
+**Note to Instructors**:  Our use of the terms "fixed effects" and "random effects" is not quite standard, but is analogous to the use of these terms in mixed-effects linear modeling.
+
+
+
+
+
