@@ -39,7 +39,7 @@ We put **sex** first because in this study it is natural to consider it to be th
 >* From searching an earlier Rmd document?
 >* From a search of your session History?
 
-
+**added stuff
 
 
 Some Terminology and Basic Ideas
@@ -64,6 +64,7 @@ and this gives the total number of females in the study.   if you add up the obs
 Work through these practice questions.  Feel free to use your calculator, or to use R as a calculator.
 
 >**Pactice**   What is the grand total for this study?
+**added stuff
 
 
 >**Pactice**	Of all students, what percentage were female and what percentage were male?  (You need to divide the row totals by grand totals to get the answers.)  The answers to this question give the distribution of **sex**.  This distribution is called a *marginal distribution*, because we often write totals in the margins of a twoWay table. 
